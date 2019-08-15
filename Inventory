@@ -1,0 +1,26 @@
+Measure-Command { Get-Content C:\PS\OSversions\computers.txt  | ForEach-Object {
+#$os_name = (Get-WmiObject Win32_OperatingSystem -ComputerName $_  ).Caption
+$ping = Test-Connection $_ -Count 1 -Quiet
+if(!$ping){
+$os_name = "N/A"
+$os_version = "N/A"
+$compName = "N/A"
+$graphic = "N/A"
+$model = "N/A"
+}
+else{
+$compName = (Get-WmiObject Win32_OperatingSystem -ComputerName $_).CSName
+$os_name = (Get-WmiObject Win32_OperatingSystem -ComputerName $_ ).Caption
+$os_version = (Get-WmiObject Win32_OperatingSystem -ComputerName $_ ).Version
+$graphic = ((Get-WmiObject Win32_VideoController  -ComputerName $_ ).Name -Join ', ')
+$model = (Get-WmiObject Win32_Computersystem -ComputerName $_ ).Model
+}
+New-Object -TypeName PSObject -Property @{
+IP = $_
+ComputerName = $compName
+OSName = $os_name
+OSVersion = $os_version
+GraphicCard = $graphic 
+Model = $model
+}} | Select IP,Model,ComputerName,GraphicCard,OSName,OSVersion |
+Export-Csv C:\PS\OSversions\OS_Details.csv -NoTypeInformation -Encoding UTF8 }
